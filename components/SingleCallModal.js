@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { X } from 'lucide-react';
 
 const SingleCallModal = ({ isOpen, onClose }) => {
     const [form, setForm] = useState({
@@ -22,7 +23,7 @@ const SingleCallModal = ({ isOpen, onClose }) => {
         setMessage("");
 
         try {
-            const res = await fetch("http://localhost:5000/call-lead", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/call-lead`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form),
@@ -34,11 +35,11 @@ const SingleCallModal = ({ isOpen, onClose }) => {
                 throw new Error(data.message || "Something went wrong");
             }
 
-            setMessage("📞 Call initiated successfully!");
+            setMessage("Call initiated successfully!");
             setForm({ name: "", email: "", phoneNumber: "", subject: "" });
             setTimeout(onClose, 2000);
         } catch (err) {
-            setMessage(`❌ ${err.message}`);
+            setMessage(`${err.message}`);
         } finally {
             setLoading(false);
         }
@@ -51,7 +52,7 @@ const SingleCallModal = ({ isOpen, onClose }) => {
                     onClick={onClose}
                     className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
                 >
-                    ✕
+                    <X className="w-5 h-5" />
                 </button>
 
                 <h2 className="text-2xl font-bold text-[#0F172A] mb-6">Make a Single Call</h2>
@@ -117,7 +118,7 @@ const SingleCallModal = ({ isOpen, onClose }) => {
                     </button>
 
                     {message && (
-                        <p className={`text-center text-sm mt-4 ${message.includes('❌') ? 'text-red-500' : 'text-green-500'}`}>
+                        <p className={`text-center text-sm mt-4 ${message.includes('Error') || message.includes('Failed') ? 'text-red-500' : 'text-green-500'}`}>
                             {message}
                         </p>
                     )}

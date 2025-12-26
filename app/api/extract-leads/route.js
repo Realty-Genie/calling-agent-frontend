@@ -1,8 +1,10 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(req) {
     try {
+        await auth().protect();
         const formData = await req.formData();
         const file = formData.get("file");
 

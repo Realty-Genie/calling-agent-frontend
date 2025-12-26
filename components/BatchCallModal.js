@@ -75,7 +75,7 @@ const BatchCallModal = ({ isOpen, onClose }) => {
         // Optimistically remove from UI or wait? User asked to remove from DB.
         // Let's try to remove from DB first.
         try {
-            const res = await fetch(`http://localhost:5000/leads/${encodeURIComponent(leadToRemove.phoneNumber)}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/leads/${encodeURIComponent(leadToRemove.phoneNumber)}`, {
                 method: "DELETE",
             });
 
@@ -243,8 +243,9 @@ const BatchCallModal = ({ isOpen, onClose }) => {
         // Let's save ALL leads in the list so they are available later.
 
         setLoading(true);
+
         try {
-            const res = await fetch("http://localhost:5000/leads/bulk", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/leads/bulk`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ leads }),
@@ -266,7 +267,8 @@ const BatchCallModal = ({ isOpen, onClose }) => {
     const handleLoadLeads = async () => {
         setLoading(true);
         try {
-            const res = await fetch("http://localhost:5000/leads");
+
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/leads`);
             const data = await res.json();
             if (res.ok && data.data) {
                 // Map backend leads to frontend format
@@ -315,7 +317,7 @@ const BatchCallModal = ({ isOpen, onClose }) => {
                 trigger_timestamp: triggerTimestamp ? parseInt(triggerTimestamp) : undefined
             };
 
-            const res = await fetch("http://localhost:5000/create-batch-call", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/create-batch-call`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),

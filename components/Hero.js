@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Phone, Zap, ArrowRight, Activity, ShieldCheck } from 'lucide-react';
+import { Phone, Zap, ArrowRight, Activity, ShieldCheck, LogIn } from 'lucide-react';
+import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
 
 const Hero = ({ onSingleCall, onBatchCall }) => {
     return (
@@ -25,25 +26,40 @@ const Hero = ({ onSingleCall, onBatchCall }) => {
                 </p>
 
                 <div className="flex flex-wrap gap-4 pt-2">
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={onSingleCall}
-                        className="bg-[#0F172A] text-white px-8 py-4 rounded-2xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-xl hover:shadow-2xl flex items-center gap-3 group"
-                    >
-                        <Phone className="w-4 h-4" />
-                        Make a Call
-                        <ArrowRight className="w-4 h-4 opacity-50 group-hover:translate-x-1 transition-transform" />
-                    </motion.button>
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={onBatchCall}
-                        className="bg-white text-[#0F172A] border border-gray-200 px-8 py-4 rounded-2xl text-sm font-semibold hover:bg-gray-50 transition-all shadow-sm hover:shadow-md flex items-center gap-3"
-                    >
-                        <Zap className="w-4 h-4" />
-                        Batch Call
-                    </motion.button>
+                    <SignedIn>
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={onSingleCall}
+                            className="bg-[#0F172A] text-white px-8 py-4 rounded-2xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-xl hover:shadow-2xl flex items-center gap-3 group"
+                        >
+                            <Phone className="w-4 h-4" />
+                            Make a Call
+                            <ArrowRight className="w-4 h-4 opacity-50 group-hover:translate-x-1 transition-transform" />
+                        </motion.button>
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={onBatchCall}
+                            className="bg-white text-[#0F172A] border border-gray-200 px-8 py-4 rounded-2xl text-sm font-semibold hover:bg-gray-50 transition-all shadow-sm hover:shadow-md flex items-center gap-3"
+                        >
+                            <Zap className="w-4 h-4" />
+                            Batch Call
+                        </motion.button>
+                    </SignedIn>
+                    <SignedOut>
+                        <SignInButton mode="modal">
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="bg-[#0F172A] text-white px-8 py-4 rounded-2xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-xl hover:shadow-2xl flex items-center gap-3 group"
+                            >
+                                <LogIn className="w-4 h-4" />
+                                Sign In to Start
+                                <ArrowRight className="w-4 h-4 opacity-50 group-hover:translate-x-1 transition-transform" />
+                            </motion.button>
+                        </SignInButton>
+                    </SignedOut>
                 </div>
 
                 <div className="flex items-center gap-8 pt-8 border-t border-gray-100">

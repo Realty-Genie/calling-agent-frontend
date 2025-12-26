@@ -14,7 +14,8 @@ const CallAnalysisView = () => {
 
     const fetchLeads = async () => {
         try {
-            const res = await fetch('http://localhost:5000/leads');
+
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/leads`);
             const data = await res.json();
             if (data.success) {
                 setLeads(data.data);
@@ -28,7 +29,8 @@ const CallAnalysisView = () => {
 
     const fetchCallDetails = async (callId) => {
         try {
-            const res = await fetch(`http://localhost:5000/call/${callId}`);
+
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/call/${callId}`);
             const data = await res.json();
             if (data.success) {
                 setSelectedCall(data.data);

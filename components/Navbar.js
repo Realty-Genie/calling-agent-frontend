@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from '@clerk/nextjs';
 
 const Navbar = ({ activeTab, onTabChange }) => {
     const tabs = [
@@ -37,8 +38,22 @@ const Navbar = ({ activeTab, onTabChange }) => {
                 ))}
             </div>
 
-            <div>
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 border border-white shadow-sm"></div>
+            <div className="flex items-center gap-4">
+                <SignedOut>
+                    <SignInButton mode="modal">
+                        <button className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                            Sign In
+                        </button>
+                    </SignInButton>
+                    <SignUpButton mode="modal">
+                        <button className="bg-[#0F172A] text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-all shadow-sm">
+                            Sign Up
+                        </button>
+                    </SignUpButton>
+                </SignedOut>
+                <SignedIn>
+                    <UserButton afterSignOutUrl="/" />
+                </SignedIn>
             </div>
         </motion.nav>
     );
