@@ -1,8 +1,11 @@
 import { motion } from 'framer-motion';
 import { Phone, Zap, ArrowRight, Activity, ShieldCheck, LogIn } from 'lucide-react';
-import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
+import { useAuth } from '../context/AuthContext';
+import Link from 'next/link';
 
 const Hero = ({ onSingleCall, onBatchCall }) => {
+    const { user } = useAuth();
+
     return (
         <section className="max-w-7xl mx-auto px-8 py-12 lg:py-20 flex flex-col lg:flex-row items-center gap-12 lg:gap-24 relative z-10">
             <motion.div
@@ -26,29 +29,30 @@ const Hero = ({ onSingleCall, onBatchCall }) => {
                 </p>
 
                 <div className="flex flex-wrap gap-4 pt-2">
-                    <SignedIn>
-                        <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={onSingleCall}
-                            className="bg-[#0F172A] text-white px-8 py-4 rounded-2xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-xl hover:shadow-2xl flex items-center gap-3 group"
-                        >
-                            <Phone className="w-4 h-4" />
-                            Make a Call
-                            <ArrowRight className="w-4 h-4 opacity-50 group-hover:translate-x-1 transition-transform" />
-                        </motion.button>
-                        <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={onBatchCall}
-                            className="bg-white text-[#0F172A] border border-gray-200 px-8 py-4 rounded-2xl text-sm font-semibold hover:bg-gray-50 transition-all shadow-sm hover:shadow-md flex items-center gap-3"
-                        >
-                            <Zap className="w-4 h-4" />
-                            Batch Call
-                        </motion.button>
-                    </SignedIn>
-                    <SignedOut>
-                        <SignInButton mode="modal">
+                    {user ? (
+                        <>
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={onSingleCall}
+                                className="bg-[#0F172A] text-white px-8 py-4 rounded-2xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-xl hover:shadow-2xl flex items-center gap-3 group"
+                            >
+                                <Phone className="w-4 h-4" />
+                                Make a Call
+                                <ArrowRight className="w-4 h-4 opacity-50 group-hover:translate-x-1 transition-transform" />
+                            </motion.button>
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={onBatchCall}
+                                className="bg-white text-[#0F172A] border border-gray-200 px-8 py-4 rounded-2xl text-sm font-semibold hover:bg-gray-50 transition-all shadow-sm hover:shadow-md flex items-center gap-3"
+                            >
+                                <Zap className="w-4 h-4" />
+                                Batch Call
+                            </motion.button>
+                        </>
+                    ) : (
+                        <Link href="/login">
                             <motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
@@ -58,8 +62,8 @@ const Hero = ({ onSingleCall, onBatchCall }) => {
                                 Sign In to Start
                                 <ArrowRight className="w-4 h-4 opacity-50 group-hover:translate-x-1 transition-transform" />
                             </motion.button>
-                        </SignInButton>
-                    </SignedOut>
+                        </Link>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-8 pt-8 border-t border-gray-100">

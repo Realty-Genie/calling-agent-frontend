@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Phone, Clock, BarChart3, ChevronRight, User, Calendar, MessageSquare } from 'lucide-react';
+import api from '../lib/api';
 
 const CallAnalysisView = () => {
     const [leads, setLeads] = useState([]);
@@ -14,11 +15,9 @@ const CallAnalysisView = () => {
 
     const fetchLeads = async () => {
         try {
-
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/leads`);
-            const data = await res.json();
-            if (data.success) {
-                setLeads(data.data);
+            const res = await api.get('/leads');
+            if (res.data.success) {
+                setLeads(res.data.data);
             }
         } catch (error) {
             console.error("Failed to fetch leads:", error);
@@ -29,11 +28,9 @@ const CallAnalysisView = () => {
 
     const fetchCallDetails = async (callId) => {
         try {
-
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/call/${callId}`);
-            const data = await res.json();
-            if (data.success) {
-                setSelectedCall(data.data);
+            const res = await api.get(`/call/${callId}`);
+            if (res.data.success) {
+                setSelectedCall(res.data.data);
             }
         } catch (error) {
             console.error("Failed to fetch call details:", error);

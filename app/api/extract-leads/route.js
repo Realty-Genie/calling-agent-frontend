@@ -1,13 +1,18 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
+// import jwt from "jsonwebtoken"; // Add this if you install jsonwebtoken
 
 export async function POST(req) {
     try {
-        const { userId } = await auth();
-        if (!userId) {
+        const cookieStore = await cookies();
+        const token = cookieStore.get("token")?.value;
+
+        if (!token) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+        // Optional: Verify token with jwt.verify(token, process.env.JWT_SECRET)
+
         const formData = await req.formData();
         const file = formData.get("file");
 

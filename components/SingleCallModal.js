@@ -1,130 +1,146 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Phone, Loader2 } from 'lucide-react';
+import api from '../lib/api';
+import AgentSelector from './AgentSelector';
+import { useAuth } from '../context/AuthContext';
 
-const SingleCallModal = ({ isOpen, onClose }) => {
-    const [form, setForm] = useState({
-        name: "",
-        email: "",
-        phoneNumber: "",
-        subject: "",
-    });
+const SingleCallModal = ({ isOpen, onClose, agents }) => {
+    const { refreshUser } = useAuth();
+    const [name, setName] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [email, setEmail] = useState('');
+    const [selectedAgentId, setSelectedAgentId] = useState('');
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState("");
-
-    if (!isOpen) return null;
-
-    const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-    };
+    const [status, setStatus] = useState(null); // 'success' | 'error' | null
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setMessage("");
+        setStatus(null);
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/call-lead`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
+            await api.post('/call/lead', {
+                name,
+                email,
+                phoneNumber,
+                agentId: selectedAgentId
             });
+            setStatus('success');
 
-            const data = await res.json();
+            // Refresh user to update credits
+            refreshUser();
 
-            if (!res.ok) {
-                throw new Error(data.message || "Something went wrong");
-            }
-
-            setMessage("Call initiated successfully!");
-            setForm({ name: "", email: "", phoneNumber: "", subject: "" });
-            setTimeout(onClose, 2000);
-        } catch (err) {
-            setMessage(`${err.message}`);
+            setTimeout(() => {
+                onClose();
+                setStatus(null);
+                setName('');
+                setPhoneNumber('');
+                setEmail('');
+                setSelectedAgentId('');
+            }, 2000);
+        } catch (error) {
+            console.error('Call failed:', error);
+            setStatus('error');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl relative">
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-                >
-                    <X className="w-5 h-5" />
-                </button>
-
-                <h2 className="text-2xl font-bold text-[#0F172A] mb-6">Make a Single Call</h2>
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                        <input
-                            type="text"
-                            name="name"
-                            value={form.name}
-                            onChange={handleChange}
-                            required
-                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all text-gray-900"
-                            placeholder="John Doe"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={form.email}
-                            onChange={handleChange}
-                            required
-                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all text-gray-900"
-                            placeholder="john@example.com"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                        <input
-                            type="tel"
-                            name="phoneNumber"
-                            value={form.phoneNumber}
-                            onChange={handleChange}
-                            required
-                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all text-gray-900"
-                            placeholder="+1234567890"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                        <input
-                            type="text"
-                            name="subject"
-                            value={form.subject}
-                            onChange={handleChange}
-                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all text-gray-900"
-                            placeholder="Inquiry about..."
-                        />
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-[#0F172A] text-white rounded-xl py-3 font-semibold hover:bg-gray-800 transition-all disabled:opacity-70 mt-4"
+        <AnimatePresence>
+            {isOpen && (
+                <>
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50"
+                    />
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-xl z-50 p-6"
                     >
-                        {loading ? "Initiating Call..." : "Start Call"}
-                    </button>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-semibold text-gray-900">Make a Call</h2>
+                            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                                <X size={20} className="text-gray-500" />
+                            </button>
+                        </div>
 
-                    {message && (
-                        <p className={`text-center text-sm mt-4 ${message.includes('Error') || message.includes('Failed') ? 'text-red-500' : 'text-green-500'}`}>
-                            {message}
-                        </p>
-                    )}
-                </form>
-            </div>
-        </div>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            {agents && agents.length > 0 && (
+                                <AgentSelector
+                                    agents={agents}
+                                    selectedAgentId={selectedAgentId}
+                                    onSelect={setSelectedAgentId}
+                                />
+                            )}
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                    placeholder="John Doe"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                <input
+                                    type="tel"
+                                    required
+                                    value={phoneNumber}
+                                    onChange={(e) => setPhoneNumber(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                    placeholder="+1234567890"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Email (Optional)</label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                    placeholder="john@example.com"
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading || (agents && agents.length > 0 && !selectedAgentId)}
+                                className="w-full bg-[#0F172A] text-white py-2.5 rounded-lg font-medium hover:bg-gray-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {loading ? (
+                                    <Loader2 className="animate-spin" size={20} />
+                                ) : (
+                                    <>
+                                        <Phone size={18} />
+                                        Initiate Call
+                                    </>
+                                )}
+                            </button>
+
+                            {status === 'success' && (
+                                <p className="text-green-600 text-sm text-center">Call initiated successfully!</p>
+                            )}
+                            {status === 'error' && (
+                                <p className="text-red-600 text-sm text-center">Failed to initiate call. Please try again.</p>
+                            )}
+                        </form>
+                    </motion.div>
+                </>
+            )}
+        </AnimatePresence>
     );
 };
 

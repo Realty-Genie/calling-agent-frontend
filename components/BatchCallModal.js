@@ -2,8 +2,12 @@ import { useState } from 'react';
 import { X, User, Mail, Phone, Plus, Trash2, Zap, FileSpreadsheet, Image as ImageIcon, Upload, Loader2, FileText, Save, Download, CheckSquare, Square } from 'lucide-react';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
+import AgentSelector from './AgentSelector';
+import api from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 
-const BatchCallModal = ({ isOpen, onClose }) => {
+const BatchCallModal = ({ isOpen, onClose, agents }) => {
+    const { refreshUser } = useAuth();
     const [leads, setLeads] = useState([]);
     const [currentLead, setCurrentLead] = useState({ name: "", email: "", phoneNumber: "" });
     const [triggerTimestamp, setTriggerTimestamp] = useState("");
@@ -13,6 +17,7 @@ const BatchCallModal = ({ isOpen, onClose }) => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [selectedLeads, setSelectedLeads] = useState(new Set());
     const [allSavedLeadsLoaded, setAllSavedLeadsLoaded] = useState(false);
+    const [selectedAgentId, setSelectedAgentId] = useState('');
 
     if (!isOpen) return null;
 
@@ -314,22 +319,20 @@ const BatchCallModal = ({ isOpen, onClose }) => {
         try {
             const payload = {
                 leads: leadsToCall,
-                trigger_timestamp: triggerTimestamp ? parseInt(triggerTimestamp) : undefined
+                trigger_timestamp: triggerTimestamp ? parseInt(triggerTimestamp) : undefined,
+                agentId: selectedAgentId
             };
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/create-batch-call`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
+            const res = await api.post('/call/batch', payload);
 
-            const data = await res.json();
+            const data = res.data;
 
-            if (!res.ok) {
+            if (res.status !== 200 && res.status !== 201) {
                 throw new Error(data.message || "Something went wrong");
             }
 
             setMessage("Batch call created successfully!");
+            refreshUser();
             setLeads([]);
             setTriggerTimestamp("");
             setTimeout(onClose, 2000);
@@ -358,6 +361,14 @@ const BatchCallModal = ({ isOpen, onClose }) => {
                 </div>
 
                 <div className="space-y-8">
+                    {agents && agents.length > 0 && (
+                        <AgentSelector
+                            agents={agents}
+                            selectedAgentId={selectedAgentId}
+                            onSelect={setSelectedAgentId}
+                        />
+                    )}
+
                     {/* Tabs */}
                     <div className="flex gap-2 p-1 bg-gray-100 rounded-xl mb-6">
                         <button
@@ -440,179 +451,96 @@ const BatchCallModal = ({ isOpen, onClose }) => {
 
                     {/* CSV/Excel Upload */}
                     {activeTab === "csv" && (
-                        <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 text-center">
-                            <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 hover:border-indigo-400 transition-colors bg-white">
-                                <input
-                                    type="file"
-                                    accept=".csv, .xlsx, .xls"
-                                    onChange={handleCsvUpload}
-                                    className="hidden"
-                                    id="csv-upload"
-                                />
-                                <label htmlFor="csv-upload" className="cursor-pointer flex flex-col items-center gap-3">
-                                    <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
-                                        <FileSpreadsheet className="w-6 h-6" />
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-900">Click to upload CSV or Excel</p>
-                                        <p className="text-xs text-gray-500 mt-1">Supported formats: .csv, .xlsx, .xls</p>
-                                    </div>
-                                </label>
-                            </div>
-                            <div className="mt-4 text-left bg-blue-50 p-4 rounded-xl border border-blue-100">
-                                <h4 className="text-xs font-bold text-blue-800 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                    <FileText className="w-3 h-3" /> File Requirements
-                                </h4>
-                                <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
-                                    <li>Must contain a header row.</li>
-                                    <li><strong>Mandatory Column:</strong> <code>phNo</code> (or phone, phoneNumber, mobile)</li>
-                                    <li>Optional Columns: <code>name</code>, <code>email</code></li>
-                                </ul>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Image Upload */}
-                    {activeTab === "image" && (
-                        <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 text-center">
-                            {isProcessing ? (
-                                <div className="py-12 flex flex-col items-center gap-4">
-                                    <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-                                    <p className="text-sm font-medium text-gray-600">Analyzing image and extracting leads...</p>
-                                </div>
-                            ) : (
+                        <>
+                            <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 text-center">
                                 <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 hover:border-indigo-400 transition-colors bg-white">
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageUpload}
-                                        className="hidden"
-                                        id="image-upload"
-                                    />
-                                    <label htmlFor="image-upload" className="cursor-pointer flex flex-col items-center gap-3">
-                                        <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
-                                            <ImageIcon className="w-6 h-6" />
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold text-gray-900">Click to upload Image</p>
-                                            <p className="text-xs text-gray-500 mt-1">Upload a photo of a handwritten or printed list</p>
-                                        </div>
-                                    </label>
+                                    <button
+                                        onClick={handleLoadLeads}
+                                        disabled={allSavedLeadsLoaded || loading}
+                                        className="px-5 py-2.5 bg-white text-indigo-600 text-xs font-bold rounded-xl border border-indigo-100 hover:bg-indigo-50 hover:border-indigo-200 transition-all shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
+                                    >
+                                        {allSavedLeadsLoaded ? (
+                                            <>
+                                                <CheckSquare className="w-4 h-4" /> All Loaded
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Download className="w-4 h-4" /> Load Saved
+                                            </>
+                                        )}
+                                    </button>
+                                    <button
+                                        onClick={handleSaveLeads}
+                                        disabled={leads.length === 0 || loading}
+                                        className="px-5 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-xl hover:bg-indigo-700 hover:shadow-indigo-200 transition-all shadow-md hover:shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                                    >
+                                        <Save className="w-4 h-4" /> Save List
+                                    </button>
                                 </div>
-                            )}
-                            <div className="mt-4 text-left bg-purple-50 p-4 rounded-xl border border-purple-100">
-                                <h4 className="text-xs font-bold text-purple-800 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                    <Zap className="w-3 h-3" /> AI Extraction
-                                </h4>
-                                <p className="text-xs text-purple-700">
-                                    We use advanced AI to read names, emails, and phone numbers from your images. Please ensure the handwriting is legible.
-                                </p>
                             </div>
-                        </div>
-                    )}
 
-                    {/* Leads List */}
-                    <div>
-                        {/* Lead Management Actions */}
-                        <div className="mb-6 bg-gray-50 p-4 rounded-2xl border border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div className="flex items-start gap-3">
-                                <div className="p-2.5 bg-white rounded-xl border border-gray-200 text-indigo-600 shadow-sm">
-                                    <Save className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <h4 className="text-sm font-bold text-gray-900">Manage Leads</h4>
-                                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                                        Save your current list to the database for future use,<br className="hidden sm:block" /> or load previously saved leads to add them here.
-                                    </p>
-                                </div>
+                            <div className="flex justify-between items-end mb-3">
+                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Leads to Call</h3>
+                                <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">
+                                    {selectedLeads.size} / {leads.length} selected
+                                </span>
                             </div>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={handleLoadLeads}
-                                    disabled={allSavedLeadsLoaded || loading}
-                                    className="px-5 py-2.5 bg-white text-indigo-600 text-xs font-bold rounded-xl border border-indigo-100 hover:bg-indigo-50 hover:border-indigo-200 transition-all shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
-                                >
-                                    {allSavedLeadsLoaded ? (
-                                        <>
-                                            <CheckSquare className="w-4 h-4" /> All Loaded
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Download className="w-4 h-4" /> Load Saved
-                                        </>
-                                    )}
-                                </button>
-                                <button
-                                    onClick={handleSaveLeads}
-                                    disabled={leads.length === 0 || loading}
-                                    className="px-5 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-xl hover:bg-indigo-700 hover:shadow-indigo-200 transition-all shadow-md hover:shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-                                >
-                                    <Save className="w-4 h-4" /> Save List
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="flex justify-between items-end mb-3">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Leads to Call</h3>
-                            <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">
-                                {selectedLeads.size} / {leads.length} selected
-                            </span>
-                        </div>
-                        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden max-h-48 overflow-y-auto shadow-sm">
-                            {leads.length === 0 ? (
-                                <div className="p-8 text-center flex flex-col items-center justify-center text-gray-400 gap-2">
-                                    <User className="w-8 h-8 opacity-20" />
-                                    <p className="text-sm">No leads added yet.</p>
-                                </div>
-                            ) : (
-                                <table className="w-full text-sm text-left">
-                                    <thead className="bg-gray-50/50 text-gray-500 font-medium border-b border-gray-100">
-                                        <tr>
-                                            <th className="px-4 py-3 w-10">
-                                                <button onClick={toggleSelectAll} className="text-gray-400 hover:text-indigo-600">
-                                                    {selectedLeads.size === leads.length && leads.length > 0 ? (
-                                                        <CheckSquare className="w-4 h-4 text-indigo-600" />
-                                                    ) : (
-                                                        <Square className="w-4 h-4" />
-                                                    )}
-                                                </button>
-                                            </th>
-                                            <th className="px-4 py-3">Name</th>
-                                            <th className="px-4 py-3">Email</th>
-                                            <th className="px-4 py-3">Phone</th>
-                                            <th className="px-4 py-3 w-10"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100">
-                                        {leads.map((lead, index) => (
-                                            <tr key={index} className={`hover:bg-gray-50/50 transition-colors ${selectedLeads.has(index) ? 'bg-indigo-50/30' : ''}`}>
-                                                <td className="px-4 py-3">
-                                                    <button onClick={() => toggleSelectLead(index)} className="text-gray-400 hover:text-indigo-600">
-                                                        {selectedLeads.has(index) ? (
+                            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden max-h-48 overflow-y-auto shadow-sm">
+                                {leads.length === 0 ? (
+                                    <div className="p-8 text-center flex flex-col items-center justify-center text-gray-400 gap-2">
+                                        <User className="w-8 h-8 opacity-20" />
+                                        <p className="text-sm">No leads added yet.</p>
+                                    </div>
+                                ) : (
+                                    <table className="w-full text-sm text-left">
+                                        <thead className="bg-gray-50/50 text-gray-500 font-medium border-b border-gray-100">
+                                            <tr>
+                                                <th className="px-4 py-3 w-10">
+                                                    <button onClick={toggleSelectAll} className="text-gray-400 hover:text-indigo-600">
+                                                        {selectedLeads.size === leads.length && leads.length > 0 ? (
                                                             <CheckSquare className="w-4 h-4 text-indigo-600" />
                                                         ) : (
                                                             <Square className="w-4 h-4" />
                                                         )}
                                                     </button>
-                                                </td>
-                                                <td className="px-4 py-3 font-medium text-gray-900">{lead.name}</td>
-                                                <td className="px-4 py-3 text-gray-500">{lead.email}</td>
-                                                <td className="px-4 py-3 text-gray-500 font-mono text-xs">{lead.phoneNumber}</td>
-                                                <td className="px-4 py-3 text-right">
-                                                    <button
-                                                        onClick={() => removeLead(index)}
-                                                        className="text-gray-400 hover:text-red-500 transition-colors p-1 hover:bg-red-50 rounded-lg"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </td>
+                                                </th>
+                                                <th className="px-4 py-3">Name</th>
+                                                <th className="px-4 py-3">Email</th>
+                                                <th className="px-4 py-3">Phone</th>
+                                                <th className="px-4 py-3 w-10"></th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
-                    </div>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                            {leads.map((lead, index) => (
+                                                <tr key={index} className={`hover:bg-gray-50/50 transition-colors ${selectedLeads.has(index) ? 'bg-indigo-50/30' : ''}`}>
+                                                    <td className="px-4 py-3">
+                                                        <button onClick={() => toggleSelectLead(index)} className="text-gray-400 hover:text-indigo-600">
+                                                            {selectedLeads.has(index) ? (
+                                                                <CheckSquare className="w-4 h-4 text-indigo-600" />
+                                                            ) : (
+                                                                <Square className="w-4 h-4" />
+                                                            )}
+                                                        </button>
+                                                    </td>
+                                                    <td className="px-4 py-3 font-medium text-gray-900">{lead.name}</td>
+                                                    <td className="px-4 py-3 text-gray-500">{lead.email}</td>
+                                                    <td className="px-4 py-3 text-gray-500 font-mono text-xs">{lead.phoneNumber}</td>
+                                                    <td className="px-4 py-3 text-right">
+                                                        <button
+                                                            onClick={() => removeLead(index)}
+                                                            className="text-gray-400 hover:text-red-500 transition-colors p-1 hover:bg-red-50 rounded-lg"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
+                            </div>
+                        </>
+                    )}
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Trigger Timestamp (Optional)</label>
@@ -627,7 +555,7 @@ const BatchCallModal = ({ isOpen, onClose }) => {
 
                     <button
                         onClick={handleSubmit}
-                        disabled={loading || selectedLeads.size === 0}
+                        disabled={loading || selectedLeads.size === 0 || (agents && agents.length > 0 && !selectedAgentId)}
                         className="w-full bg-[#0F172A] text-white rounded-xl py-3.5 font-semibold hover:bg-gray-800 transition-all disabled:opacity-70 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
                     >
                         {loading ? (
