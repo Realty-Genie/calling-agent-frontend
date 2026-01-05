@@ -117,7 +117,7 @@ const CallAnalysisView = () => {
                             </div>
 
                             {/* Stats Cards */}
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-2 gap-4">
                                 <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                                     <p className="text-xs text-gray-400 uppercase font-bold mb-1">Sentiment</p>
                                     <p className="text-lg font-bold text-[#0F172A]">
@@ -128,12 +128,6 @@ const CallAnalysisView = () => {
                                     <p className="text-xs text-gray-400 uppercase font-bold mb-1">Success</p>
                                     <p className="text-lg font-bold text-[#0F172A]">
                                         {selectedCall.call_analysis?.call_successful ? 'Yes' : 'No'}
-                                    </p>
-                                </div>
-                                <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                                    <p className="text-xs text-gray-400 uppercase font-bold mb-1">Cost</p>
-                                    <p className="text-lg font-bold text-[#0F172A]">
-                                        ${((selectedCall.call_cost?.combined_cost || 0) / 100).toFixed(3)}
                                     </p>
                                 </div>
                             </div>
