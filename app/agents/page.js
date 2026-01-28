@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useRouter } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 import { motion } from 'framer-motion';
 import { Phone, Zap, User, ShieldCheck, Activity, Loader2 } from 'lucide-react';
@@ -10,15 +11,24 @@ import AgentCard from '../../components/AgentCard';
 export default function AgentsPage() {
     const { user, refreshUser, loading } = useAuth();
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!loading && !user) {
+            router.push('/login');
+        }
+    }, [user, loading, router]);
 
     useEffect(() => {
         const syncUser = async () => {
-            setIsRefreshing(true);
-            await refreshUser();
-            setIsRefreshing(false);
+            if (user) {
+                setIsRefreshing(true);
+                await refreshUser();
+                setIsRefreshing(false);
+            }
         };
         syncUser();
-    }, []);
+    }, [user]);
 
     if (loading && !user) {
         return (

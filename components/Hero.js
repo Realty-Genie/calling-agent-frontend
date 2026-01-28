@@ -3,7 +3,7 @@ import { Phone, Zap, ArrowRight, Activity, ShieldCheck, LogIn } from 'lucide-rea
 import { useAuth } from '../context/AuthContext';
 import Link from 'next/link';
 
-const Hero = ({ onSingleCall, onBatchCall }) => {
+const Hero = ({ onSingleCall, onBatchCall, onTryNow }) => {
     const { user } = useAuth();
 
     return (
@@ -52,17 +52,16 @@ const Hero = ({ onSingleCall, onBatchCall }) => {
                             </motion.button>
                         </>
                     ) : (
-                        <Link href="/login">
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                className="bg-[#0F172A] text-white px-8 py-4 rounded-2xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-xl hover:shadow-2xl flex items-center gap-3 group"
-                            >
-                                <LogIn className="w-4 h-4" />
-                                Sign In to Start
-                                <ArrowRight className="w-4 h-4 opacity-50 group-hover:translate-x-1 transition-transform" />
-                            </motion.button>
-                        </Link>
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={onTryNow}
+                            className="bg-[#0F172A] text-white px-8 py-4 rounded-2xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-xl hover:shadow-2xl flex items-center gap-3 group"
+                        >
+                            <Zap className="w-4 h-4" />
+                            Try Now
+                            <ArrowRight className="w-4 h-4 opacity-50 group-hover:translate-x-1 transition-transform" />
+                        </motion.button>
                     )}
                 </div>
 
