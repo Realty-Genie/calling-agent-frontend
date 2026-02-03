@@ -17,9 +17,9 @@ const Navbar = () => {
             transition={{ duration: 0.5 }}
             className="flex items-center justify-between px-8 py-6 max-w-7xl mx-auto w-full relative z-50"
         >
-            <div className="text-2xl font-bold tracking-tighter text-gray-900 flex items-center gap-2">
+            <Link href="/" className="text-2xl font-bold tracking-tighter text-gray-900 flex items-center gap-2">
                 <span className="bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">CallGenie</span>
-            </div>
+            </Link  >
 
             <div className="hidden md:flex items-center bg-gray-100/50 backdrop-blur-md p-1.5 rounded-full border border-gray-200/50">
                 <Link href="/">

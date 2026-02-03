@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
+import { Bot } from 'lucide-react';
 
 export default function AuthPage() {
     const [mode, setMode] = useState('login'); // 'login' or 'signup'
@@ -201,29 +202,44 @@ export default function AuthPage() {
                 </motion.div>
             </div>
 
-            {/* Right Side - Placeholder Image */}
-            <div className="hidden lg:flex w-1/2 bg-[#F1F5F9] items-center justify-center relative">
-                {/* Placeholder content */}
-                <div className="text-center">
-                    <div className="w-96 h-80 bg-white rounded-2xl shadow-lg flex items-center justify-center border border-gray-200">
-                        <div className="text-gray-400">
-                            <svg
-                                className="w-16 h-16 mx-auto mb-4 text-gray-300"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={1.5}
-                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                />
-                            </svg>
-                            <p className="text-lg font-medium text-gray-400">Image Placeholder</p>
+            {/* Right Side - Feature Showcase */}
+            <div className="hidden lg:flex w-1/2 bg-slate-50 items-center justify-center relative overflow-hidden p-12 border-l border-slate-100">
+                {/* Subtle Grid Pattern */}
+                <div className="absolute inset-0 opacity-[0.5]" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                    className="relative z-10 max-w-md w-full"
+                >
+
+                    {/* Quote */}
+                    <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 relative overflow-hidden">
+                        {/* Decorative Corner Accent */}
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full" />
+
+                        <span className="absolute -top-8 -left-4 text-9xl text-gray-100 font-serif select-none pointer-events-none">
+                            “
+                        </span>
+
+                        <p className="relative text-2xl font-medium text-gray-700 leading-relaxed mb-6 z-10">
+                            AI agents will become our digital assistants, helping us navigate the complexities of the modern world. They will make our lives easier and more efficient.
+                        </p>
+
+                        <div className="flex items-center gap-4 pt-4 border-t border-gray-50">
+                            <div className="h-px w-8 bg-gray-200" />
+                            <div>
+                                <p className="text-sm font-semibold text-gray-900">
+                                    Jeff Bezos
+                                </p>
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                    Founder of Amazon
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </motion.div>
             </div>
         </div>
     );
