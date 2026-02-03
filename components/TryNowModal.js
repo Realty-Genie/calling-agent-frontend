@@ -1,12 +1,32 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Phone, Loader2 } from 'lucide-react';
-import axios from 'axios';
+import api from '../lib/api';
+
+// Hardcoded agents with their Retell Agent IDs
+const DEMO_AGENTS = [
+    {
+        id: 'agent_fbefa26c2b8ace5ec48eeeb86f',
+        name: 'Preconstruction Sales Agent',
+        description: 'For Burnaby'
+    },
+    {
+        id: 'agent_a0d7128c88633e1afeb6b57eae',
+        name: 'Residential Property Listing Outreach Agent',
+        description: 'Residential property outreach'
+    },
+    {
+        id: 'agent_38aaed3015d8e37ed7d6fb6ca1',
+        name: 'About RealtyGenie Agent',
+        description: 'General information about RealtyGenie'
+    }
+];
 
 const TryNowModal = ({ isOpen, onClose }) => {
     const [name, setName] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
-    const [agentType, setAgentType] = useState('sales');
+    const [email, setEmail] = useState('');
+    const [selectedAgentId, setSelectedAgentId] = useState('');
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState(null); // 'success' | 'error' | null
 
@@ -16,10 +36,12 @@ const TryNowModal = ({ isOpen, onClose }) => {
         setStatus(null);
 
         try {
-            await axios.post('/api/mock-call', {
+            await api.post('/demo/createCall', {
+                retellAgentId: selectedAgentId,
                 name,
-                phoneNumber,
-                agentType
+                email,
+                toNumber: phoneNumber,
+                fromNumber: process.env.NEXT_PUBLIC_FROM_NUMBER || '+17787190711'
             });
             setStatus('success');
 
@@ -28,7 +50,8 @@ const TryNowModal = ({ isOpen, onClose }) => {
                 setStatus(null);
                 setName('');
                 setPhoneNumber('');
-                setAgentType('sales');
+                setEmail('');
+                setSelectedAgentId('');
             }, 2000);
         } catch (error) {
             console.error('Call failed:', error);
@@ -56,13 +79,31 @@ const TryNowModal = ({ isOpen, onClose }) => {
                         className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-xl z-50 p-6"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-semibold text-gray-900">Try Now</h2>
+                            <h2 className="text-xl font-semibold text-gray-900">Try Callgenie</h2>
                             <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                                 <X size={20} className="text-gray-500" />
                             </button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
+                            {/* Agent Selection */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Select Agent</label>
+                                <select
+                                    required
+                                    value={selectedAgentId}
+                                    onChange={(e) => setSelectedAgentId(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white"
+                                >
+                                    <option value="">Choose an agent...</option>
+                                    {DEMO_AGENTS.map((agent) => (
+                                        <option key={agent.id} value={agent.id}>
+                                            {agent.name} - {agent.description}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                                 <input
@@ -88,27 +129,19 @@ const TryNowModal = ({ isOpen, onClose }) => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Agent Type</label>
-                                <div className="flex gap-4">
-                                    {['sales', 'support', 'survey'].map((type) => (
-                                        <label key={type} className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="agentType"
-                                                value={type}
-                                                checked={agentType === type}
-                                                onChange={(e) => setAgentType(e.target.value)}
-                                                className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
-                                            />
-                                            <span className="capitalize text-sm text-gray-700">{type}</span>
-                                        </label>
-                                    ))}
-                                </div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Email (Optional)</label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                    placeholder="john@example.com"
+                                />
                             </div>
 
                             <button
                                 type="submit"
-                                disabled={loading}
+                                disabled={loading || !selectedAgentId}
                                 className="w-full bg-[#0F172A] text-white py-2.5 rounded-lg font-medium hover:bg-gray-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading ? (
