@@ -3,13 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import Link from 'next/link';
 import { LogOut, User, Coins } from 'lucide-react';
 
-const Navbar = ({ activeTab, onTabChange }) => {
+const Navbar = () => {
     const { user, logout } = useAuth();
-
-    const tabs = [
-        { id: 'make-calls', label: 'Make Calls' },
-        { id: 'call-analysis', label: 'Call Analysis' },
-    ];
 
     return (
         <motion.nav
@@ -23,46 +18,22 @@ const Navbar = ({ activeTab, onTabChange }) => {
             </div>
 
             <div className="hidden md:flex items-center bg-gray-100/50 backdrop-blur-md p-1.5 rounded-full border border-gray-200/50">
-                {tabs.map((tab) => {
-                    const isActive = activeTab === tab.id;
-                    const content = (
-                        <button
-                            key={tab.id}
-                            onClick={() => onTabChange && onTabChange(tab.id)}
-                            className={`relative px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${isActive ? 'text-white' : 'text-gray-500 hover:text-gray-900'
-                                }`}
-                        >
-                            {isActive && (
-                                <motion.div
-                                    layoutId="activeTab"
-                                    className="absolute inset-0 bg-[#0F172A] rounded-full shadow-lg"
-                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                />
-                            )}
-                            <span className="relative z-10">{tab.label}</span>
-                        </button>
-                    );
-
-                    return onTabChange ? (
-                        <div key={tab.id}>{content}</div>
-                    ) : (
-                        <Link key={tab.id} href={`/?tab=${tab.id}`}>
-                            {content}
-                        </Link>
-                    );
-                })}
+                <Link href="/">
+                    <button
+                        className="relative px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 text-white"
+                    >
+                        <motion.div
+                            layoutId="activeTab"
+                            className="absolute inset-0 bg-[#0F172A] rounded-full shadow-lg"
+                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                        />
+                        <span className="relative z-10">Call Analysis</span>
+                    </button>
+                </Link>
                 <Link href="/agents">
                     <button
-                        className={`relative px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${activeTab === 'agents' ? 'text-white' : 'text-gray-500 hover:text-gray-900'
-                            }`}
+                        className="relative px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 text-gray-500 hover:text-gray-900"
                     >
-                        {activeTab === 'agents' && (
-                            <motion.div
-                                layoutId="activeTab"
-                                className="absolute inset-0 bg-[#0F172A] rounded-full shadow-lg"
-                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                            />
-                        )}
                         <span className="relative z-10">Agents</span>
                     </button>
                 </Link>
@@ -76,7 +47,7 @@ const Navbar = ({ activeTab, onTabChange }) => {
                                 Sign In
                             </button>
                         </Link>
-                        <Link href="/register">
+                        <Link href="/login">
                             <button className="bg-[#0F172A] text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-all shadow-sm">
                                 Sign Up
                             </button>

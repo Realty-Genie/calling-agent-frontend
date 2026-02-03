@@ -1,8 +1,11 @@
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import { AuthProvider } from "../context/AuthContext";
 import "./globals.css";
 
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-grotesk",
+});
 
 export const metadata = {
   title: "CallGenie | AI Voice Agent",
@@ -13,7 +16,7 @@ export default function RootLayout({ children }) {
   return (
     <AuthProvider>
       <html lang="en">
-        <body className={jakarta.className}>{children}</body>
+        <body className={`${spaceGrotesk.className} ${spaceGrotesk.variable}`}>{children}</body>
       </html>
     </AuthProvider>
   );

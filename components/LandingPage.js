@@ -2,34 +2,96 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import Hero from "../components/Hero";
 import Features from "../components/Features";
+import HowItWorks from "../components/HowItWorks";
+import Testimonials from "../components/Testimonials";
+import CTASection from "../components/CTASection";
+import Footer from "../components/Footer";
 import TryNowModal from "../components/TryNowModal";
-
 
 export default function LandingPage() {
     const [isTryNowOpen, setIsTryNowOpen] = useState(false);
 
-    return (
-        <main className="min-h-screen bg-white selection:bg-indigo-100 selection:text-indigo-900 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]">
+    const navLinks = [
+        { label: 'Features', href: '#features' },
+        { label: 'How It Works', href: '#how-it-works' },
+        { label: 'Testimonials', href: '#testimonials' },
+    ];
 
-            <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-50 max-w-7xl mx-auto">
-                <div className="text-2xl font-bold tracking-tighter text-gray-900 flex items-center gap-2">
-                    <span className="bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">CallGenie</span>
+    return (
+        <main className="min-h-screen bg-[#f5f5f5] selection:bg-gray-200 selection:text-gray-900 relative z-10">
+            {/* Navigation */}
+            <motion.nav
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="fixed top-0 left-0 right-0 z-50 bg-[#f5f5f5]/80 backdrop-blur-md border-b border-gray-200/50"
+            >
+                <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                    {/* Logo */}
+                    <Link href="/" className="text-xl font-grotesk font-bold tracking-tight text-[#0F172A]">
+                        CallGenie
+                    </Link>
+
+                    {/* Nav Links - Desktop */}
+                    <div className="hidden md:flex items-center gap-8">
+                        {navLinks.map((link, index) => (
+                            <a
+                                key={index}
+                                href={link.href}
+                                className="text-sm font-grotesk text-gray-600 hover:text-[#0F172A] transition-colors"
+                            >
+                                {link.label}
+                            </a>
+                        ))}
+                    </div>
+
+                    {/* Auth Buttons */}
+                    <div className="flex items-center gap-3">
+                        <Link href="/login">
+                            <button className="text-sm font-grotesk font-medium text-gray-600 hover:text-[#0F172A] transition-colors">
+                                Log in
+                            </button>
+                        </Link>
+                        <Link href="/login">
+                            <button className="bg-[#0F172A] text-white px-5 py-2 rounded-full text-sm font-grotesk font-medium hover:bg-gray-800 transition-all shadow-sm">
+                                Sign up – it's free
+                            </button>
+                        </Link>
+                    </div>
                 </div>
-                <Link href="/login">
-                    <button className="bg-white text-[#0F172A] border border-gray-200 px-6 py-2 rounded-full text-sm font-medium hover:bg-gray-50 transition-all shadow-sm">
-                        Sign In
-                    </button>
-                </Link>
+            </motion.nav>
+
+            {/* Spacer for fixed nav */}
+            <div className="h-16" />
+
+            {/* Hero Section */}
+            <Hero onTryNow={() => setIsTryNowOpen(true)} />
+
+            {/* Features Section */}
+            <div id="features">
+                <Features />
             </div>
 
-            <Hero
-                onTryNow={() => setIsTryNowOpen(true)}
-            />
+            {/* How It Works Section */}
+            <div id="how-it-works">
+                <HowItWorks />
+            </div>
 
-            <Features />
+            {/* Testimonials Section */}
+            <div id="testimonials">
+                <Testimonials />
+            </div>
 
+            {/* CTA Section */}
+            <CTASection onTryNow={() => setIsTryNowOpen(true)} />
+
+            {/* Footer */}
+            <Footer />
+
+            {/* Try Now Modal */}
             <TryNowModal
                 isOpen={isTryNowOpen}
                 onClose={() => setIsTryNowOpen(false)}
