@@ -58,17 +58,6 @@ export default function AuthPage() {
         <div className="min-h-screen flex">
             {/* Left Side - Form */}
             <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-16 xl:px-24 py-12 bg-white">
-                {/* Logo */}
-                <div className="mb-12">
-                    <Image
-                        src="/logo.png"
-                        alt="CallGenie"
-                        width={40}
-                        height={40}
-                        className="h-10 w-auto"
-                    />
-                </div>
-
                 {/* Form Content */}
                 <motion.div
                     key={mode}
