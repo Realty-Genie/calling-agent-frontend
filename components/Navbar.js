@@ -1,10 +1,14 @@
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { LogOut, User, Coins } from 'lucide-react';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
+    const pathname = usePathname();
+
+    const isAgentsPage = pathname === '/agents';
 
     return (
         <motion.nav
@@ -20,20 +24,29 @@ const Navbar = () => {
             <div className="hidden md:flex items-center bg-gray-100/50 backdrop-blur-md p-1.5 rounded-full border border-gray-200/50">
                 <Link href="/">
                     <button
-                        className="relative px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 text-white"
+                        className={`relative px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${!isAgentsPage ? 'text-white' : 'text-gray-500 hover:text-gray-900'}`}
                     >
-                        <motion.div
-                            layoutId="activeTab"
-                            className="absolute inset-0 bg-[#0F172A] rounded-full shadow-lg"
-                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                        />
-                        <span className="relative z-10">Call Analysis</span>
+                        {!isAgentsPage && (
+                            <motion.div
+                                layoutId="activeTab"
+                                className="absolute inset-0 bg-[#0F172A] rounded-full shadow-lg"
+                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                            />
+                        )}
+                        <span className="relative z-10">Dashboard</span>
                     </button>
                 </Link>
                 <Link href="/agents">
                     <button
-                        className="relative px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 text-gray-500 hover:text-gray-900"
+                        className={`relative px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${isAgentsPage ? 'text-white' : 'text-gray-500 hover:text-gray-900'}`}
                     >
+                        {isAgentsPage && (
+                            <motion.div
+                                layoutId="activeTab"
+                                className="absolute inset-0 bg-[#0F172A] rounded-full shadow-lg"
+                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                            />
+                        )}
                         <span className="relative z-10">Agents</span>
                     </button>
                 </Link>
