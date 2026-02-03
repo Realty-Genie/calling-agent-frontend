@@ -17,7 +17,13 @@ import {
     BarChart3,
     MessageSquare,
     Play,
-    X
+    X,
+    DollarSign,
+    PhoneIncoming,
+    PhoneOutgoing,
+    Voicemail,
+    FileText,
+    ClipboardList
 } from "lucide-react";
 import api from "../lib/api";
 
@@ -61,6 +67,8 @@ export default function Dashboard() {
             if (res.data.success) {
                 setCallDetails(res.data.data);
             }
+            console.log(res.data.data);
+
         } catch (error) {
             console.error("Failed to fetch call details:", error);
         }
@@ -379,6 +387,56 @@ export default function Dashboard() {
                                     </div>
                                 </div>
 
+                                {/* Call Metadata */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    {selectedCall.call?.analysis?.in_voicemail !== undefined && (
+                                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${selectedCall.call.analysis.in_voicemail ? 'bg-amber-50 border-amber-100' : 'bg-gray-50 border-gray-100'}`}>
+                                            <Voicemail className={`w-5 h-5 ${selectedCall.call.analysis.in_voicemail ? 'text-amber-600' : 'text-gray-400'}`} />
+                                            <div>
+                                                <p className={`text-xs font-medium ${selectedCall.call.analysis.in_voicemail ? 'text-amber-600' : 'text-gray-500'}`}>Voicemail</p>
+                                                <p className={`text-sm font-bold ${selectedCall.call.analysis.in_voicemail ? 'text-amber-700' : 'text-gray-600'}`}>
+                                                    {selectedCall.call.analysis.in_voicemail ? 'Yes' : 'No'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {selectedCall.call?.fromNumber && (
+                                        <div className="flex items-center gap-3 bg-blue-50 p-3 rounded-xl border border-blue-100">
+                                            <PhoneOutgoing className="w-5 h-5 text-blue-600" />
+                                            <div>
+                                                <p className="text-xs text-blue-600 font-medium">From</p>
+                                                <p className="text-sm font-bold text-blue-700">{selectedCall.call.fromNumber}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {selectedCall.call?.toNumber && (
+                                        <div className="flex items-center gap-3 bg-purple-50 p-3 rounded-xl border border-purple-100">
+                                            <PhoneIncoming className="w-5 h-5 text-purple-600" />
+                                            <div>
+                                                <p className="text-xs text-purple-600 font-medium">To</p>
+                                                <p className="text-sm font-bold text-purple-700">{selectedCall.call.toNumber}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Recording */}
+                                {selectedCall.call?.recordingUrl && (
+                                    <div>
+                                        <h5 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                            <Play className="w-4 h-4 text-green-500" />
+                                            Recording
+                                        </h5>
+                                        <audio
+                                            controls
+                                            className="w-full rounded-xl"
+                                            src={selectedCall.call.recordingUrl}
+                                        >
+                                            Your browser does not support the audio element.
+                                        </audio>
+                                    </div>
+                                )}
+
                                 {/* Summary */}
                                 {selectedCall.call?.analysis?.call_summary && (
                                     <div>
@@ -389,6 +447,40 @@ export default function Dashboard() {
                                         <p className="text-sm text-gray-600 bg-indigo-50/50 p-4 rounded-xl leading-relaxed border border-indigo-100">
                                             {selectedCall.call.analysis.call_summary}
                                         </p>
+                                    </div>
+                                )}
+
+                                {/* Custom Analysis Data */}
+                                {selectedCall.call?.analysis?.custom_analysis_data && (
+                                    <div>
+                                        <h5 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                            <ClipboardList className="w-4 h-4 text-amber-500" />
+                                            Custom Analysis Data
+                                        </h5>
+                                        <div className="bg-amber-50/50 rounded-xl border border-amber-100 overflow-hidden">
+                                            <div className="divide-y divide-amber-100">
+                                                {Object.entries(selectedCall.call.analysis.custom_analysis_data).map(([key, value]) => {
+                                                    // Format the key to be more readable
+                                                    const formattedKey = key
+                                                        .replace(/_/g, ' ')
+                                                        .replace(/:/g, '')
+                                                        .split(' ')
+                                                        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                                                        .join(' ');
+
+                                                    return (
+                                                        <div key={key} className="flex items-start px-4 py-3">
+                                                            <span className="text-xs font-medium text-amber-700 w-1/2 shrink-0">
+                                                                {formattedKey}
+                                                            </span>
+                                                            <span className="text-sm text-gray-700 break-words">
+                                                                {value || <span className="text-gray-400 italic">Not provided</span>}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
 
