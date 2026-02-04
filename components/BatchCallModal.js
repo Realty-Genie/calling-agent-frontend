@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, User, Mail, Phone, Plus, Trash2, Zap, FileSpreadsheet, Image as ImageIcon, Upload, Loader2, FileText, Save, Download, CheckSquare, Square, MapPin, Pencil } from 'lucide-react';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
@@ -24,6 +24,17 @@ const BatchCallModal = ({ isOpen, onClose, agents }) => {
 
     const selectedAgent = agents?.find(a => (a._id || a.id) === selectedAgentId);
     const isSellerAgent = selectedAgent?.name?.toLowerCase().includes('seller');
+
+    // Handle ESC key to close modal
+    useEffect(() => {
+        const handleEsc = (e) => {
+            if (e.key === 'Escape' && isOpen) {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [isOpen, onClose]);
 
     const confirmAddLeads = async () => {
         const currentPhones = new Set(leads.map(l => l.phoneNumber));
@@ -677,7 +688,7 @@ const BatchCallModal = ({ isOpen, onClose, agents }) => {
                     {/* CSV/Excel Upload */}
                     {activeTab === "csv" && (
                         <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 text-center">
-                            <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 hover:border-indigo-400 transition-colors bg-white">
+                            <div className="flex flex-col items-center gap-2 border-2 border-dashed border-gray-300 rounded-xl p-8 hover:border-indigo-400 transition-colors bg-white">
                                 <button
                                     onClick={handleLoadLeads}
                                     disabled={allSavedLeadsLoaded || loading}
@@ -701,7 +712,7 @@ const BatchCallModal = ({ isOpen, onClose, agents }) => {
                                     <Save className="w-4 h-4" /> Save List
                                 </button>
                             </div>
-                            <div className="mt-4 flex justify-center">
+                            <div className="mt-4 flex justify-center items-center">
                                 <label className="cursor-pointer bg-white border border-gray-200 text-gray-700 font-semibold py-2.5 px-6 rounded-xl hover:bg-white hover:border-indigo-200 hover:text-indigo-600 transition-all flex items-center justify-center gap-2 text-sm shadow-sm">
                                     <Upload className="w-4 h-4" /> Upload CSV/Excel
                                     <input type="file" accept=".csv, .xlsx, .xls" onChange={handleCsvUpload} className="hidden" />

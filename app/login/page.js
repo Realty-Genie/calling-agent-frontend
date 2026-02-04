@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
-import { Bot } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AuthPage() {
     const [mode, setMode] = useState('login'); // 'login' or 'signup'
@@ -66,6 +66,15 @@ export default function AuthPage() {
                     transition={{ duration: 0.3 }}
                     className="max-w-md"
                 >
+                    {/* Back to Home Link */}
+                    <Link
+                        href="/"
+                        className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#0F172A] transition-colors mb-8 group"
+                    >
+                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        Back to Home
+                    </Link>
+
                     {/* Heading */}
                     <h1 className="text-4xl lg:text-5xl font-bold text-[#0F172A] mb-3 tracking-tight">
                         {mode === 'login' ? 'Log in to' : 'Sign up for'}

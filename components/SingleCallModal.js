@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Phone, Loader2, MapPin } from 'lucide-react';
 import api from '../lib/api';
@@ -17,6 +17,17 @@ const SingleCallModal = ({ isOpen, onClose, agents }) => {
 
     const selectedAgent = agents?.find(a => (a._id || a.id) === selectedAgentId);
     const isSellerAgent = selectedAgent?.name?.toLowerCase().includes('seller');
+
+    // Handle ESC key to close modal
+    useEffect(() => {
+        const handleEsc = (e) => {
+            if (e.key === 'Escape' && isOpen) {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [isOpen, onClose]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
