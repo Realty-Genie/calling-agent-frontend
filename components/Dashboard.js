@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 import Navbar from "../components/Navbar";
 import SingleCallModal from "../components/SingleCallModal";
+import BatchCallModal from "../components/BatchCallModal";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Phone,
@@ -31,6 +32,7 @@ export default function Dashboard() {
     const { user, loading } = useAuth();
     const router = useRouter();
     const [isCallModalOpen, setIsCallModalOpen] = useState(false);
+    const [isBatchCallModalOpen, setIsBatchCallModalOpen] = useState(false);
     const [leads, setLeads] = useState([]);
     const [selectedCall, setSelectedCall] = useState(null);
     const [callDetails, setCallDetails] = useState(null);
@@ -114,16 +116,28 @@ export default function Dashboard() {
                         <h1 className="text-3xl font-bold text-[#0F172A]">Dashboard</h1>
                         <p className="text-gray-500 mt-1">Monitor your calls and leads</p>
                     </div>
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setIsCallModalOpen(true)}
-                        className="bg-[#0F172A] text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-[#1E293B] transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
-                        style={{ isolation: 'isolate' }}
-                    >
-                        <PhoneCall className="w-5 h-5" />
-                        Make a Call
-                    </motion.button>
+                    <div className="flex items-center gap-3">
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setIsCallModalOpen(true)}
+                            className="bg-[#0F172A] text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-[#1E293B] transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
+                            style={{ isolation: 'isolate' }}
+                        >
+                            <PhoneCall className="w-5 h-5" />
+                            Make a Call
+                        </motion.button>
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setIsBatchCallModalOpen(true)}
+                            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-full text-sm font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
+                            style={{ isolation: 'isolate' }}
+                        >
+                            <Users className="w-5 h-5" />
+                            Batch Calling
+                        </motion.button>
+                    </div>
                 </div>
 
                 {/* Stats Cards */}
@@ -510,6 +524,11 @@ export default function Dashboard() {
             <SingleCallModal
                 isOpen={isCallModalOpen}
                 onClose={() => setIsCallModalOpen(false)}
+                agents={agents}
+            />
+            <BatchCallModal
+                isOpen={isBatchCallModalOpen}
+                onClose={() => setIsBatchCallModalOpen(false)}
                 agents={agents}
             />
         </main>
