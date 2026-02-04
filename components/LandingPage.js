@@ -52,14 +52,35 @@ export default function LandingPage() {
                     <div className="flex items-center gap-3">
                         <Link href="/login">
                             <button className="text-sm font-grotesk font-medium text-gray-600 hover:text-[#0F172A] transition-colors">
-                                Log in
+                                Login / Sign up
                             </button>
                         </Link>
-                        <Link href="/login">
-                            <button className="bg-[#0F172A] text-white px-5 py-2 rounded-full text-sm font-grotesk font-medium hover:bg-gray-800 transition-all shadow-sm">
-                                Sign up – it's free
-                            </button>
-                        </Link>
+                        <button
+                            onClick={() => setIsTryNowOpen(true)}
+                            className="bg-[#020617] text-white px-8 py-3 rounded-full text-sm font-grotesk font-medium 
+                            hover:scale-105 transition-all duration-300 relative overflow-hidden group 
+                            shadow-[0_0_15px_rgba(56,189,248,0.5)] hover:shadow-[0_0_30px_rgba(56,189,248,0.7),0_0_60px_rgba(232,121,249,0.5)]
+                            border border-white/10"
+                        >
+                            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-cyan-500/10 via-fuchsia-500/10 to-yellow-500/10" />
+
+                            <span className="relative z-10 font-semibold tracking-wide">Try Now</span>
+
+                            {/* Spectrum Shimmer - Automatic */}
+                            <motion.div
+                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 via-yellow-400/80 via-fuchsia-500/80 via-cyan-400/80 to-transparent opacity-50 skew-x-12"
+                                initial={{ x: '-100%' }}
+                                animate={{ x: '100%' }}
+                                transition={{
+                                    repeat: Infinity,
+                                    duration: 1.5,
+                                    ease: "easeInOut",
+                                    repeatDelay: 0.5
+                                }}
+                            />
+
+                            <div className="absolute inset-0 rounded-full ring-1 ring-white/10 group-hover:ring-white/30 transition-all" />
+                        </button>
                     </div>
                 </div>
             </motion.nav>

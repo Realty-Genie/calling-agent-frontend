@@ -3,10 +3,11 @@ import { Phone, Zap, ArrowRight, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
-const Hero = ({ onSingleCall, onBatchCall, onTryNow }) => {
+const Hero = ({ onSingleCall, onBatchCall }) => {
     const { user } = useAuth();
-
+    const router = useRouter();
     const features = [
         { text: 'Human-like AI Calling' },
         { text: 'Schedule Calls, Get Results' },
@@ -78,10 +79,10 @@ const Hero = ({ onSingleCall, onBatchCall, onTryNow }) => {
                             <motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                onClick={onTryNow}
+                                onClick={() => router.push('/login')}
                                 className="bg-[#0F172A] text-white px-8 py-4 rounded-full text-sm font-grotesk font-semibold hover:bg-gray-900 transition-all shadow-lg hover:shadow-xl flex items-center gap-3 group"
                             >
-                                Try now
+                                Get started
                                 <ArrowRight className="w-4 h-4 opacity-50 group-hover:translate-x-1 transition-transform" />
                             </motion.button>
                             <Link href="https://cal.com/realtygenie/30min?overlayCalendar=true" target="_blank" rel="noopener noreferrer">
