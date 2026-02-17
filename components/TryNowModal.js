@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Phone, Loader2 } from 'lucide-react';
+import { X, Phone, Loader2, ChevronDown } from 'lucide-react';
 import api from '../lib/api';
 
 // Hardcoded agents with their Retell Agent IDs
@@ -22,10 +22,29 @@ const DEMO_AGENTS = [
     }
 ];
 
-const TryNowModal = ({ isOpen, onClose }) => {
+const COUNTRY_CODES = [
+    { code: '+1', country: 'US', flag: '🇺🇸', label: 'United States' },
+    { code: '+1', country: 'CA', flag: '🇨🇦', label: 'Canada' },
+    { code: '+91', country: 'IN', flag: '🇮🇳', label: 'India' },
+    { code: '+44', country: 'GB', flag: '🇬🇧', label: 'United Kingdom' },
+    { code: '+61', country: 'AU', flag: '🇦🇺', label: 'Australia' },
+    { code: '+971', country: 'AE', flag: '🇦🇪', label: 'UAE' },
+    { code: '+65', country: 'SG', flag: '🇸🇬', label: 'Singapore' },
+    { code: '+49', country: 'DE', flag: '🇩🇪', label: 'Germany' },
+    { code: '+33', country: 'FR', flag: '🇫🇷', label: 'France' },
+    { code: '+81', country: 'JP', flag: '🇯🇵', label: 'Japan' },
+    { code: '+86', country: 'CN', flag: '🇨🇳', label: 'China' },
+    { code: '+55', country: 'BR', flag: '🇧🇷', label: 'Brazil' },
+    { code: '+52', country: 'MX', flag: '🇲🇽', label: 'Mexico' },
+    { code: '+234', country: 'NG', flag: '🇳🇬', label: 'Nigeria' },
+    { code: '+27', country: 'ZA', flag: '🇿🇦', label: 'South Africa' },
+];
+
+const TryNowModal = ({ isOpen, onClose, email, token }) => {
     const [name, setName] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
-    const [email, setEmail] = useState('');
+    const [countryCode, setCountryCode] = useState('+1');
+    const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
     const [selectedAgentId, setSelectedAgentId] = useState('');
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState(null); // 'success' | 'error' | null
@@ -41,6 +60,40 @@ const TryNowModal = ({ isOpen, onClose }) => {
         return () => window.removeEventListener('keydown', handleEsc);
     }, [isOpen, onClose]);
 
+    // Reset state when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            setName('');
+            setPhoneNumber('');
+            setCountryCode('+1');
+            setSelectedAgentId('');
+            setStatus(null);
+            setLoading(false);
+            setIsCountryDropdownOpen(false);
+        }
+    }, [isOpen]);
+
+    // Close country dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (isCountryDropdownOpen && !e.target.closest('.country-code-selector')) {
+                setIsCountryDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isCountryDropdownOpen]);
+
+    const handlePhoneChange = (e) => {
+        // Only allow digits
+        const value = e.target.value.replace(/\D/g, '');
+        setPhoneNumber(value);
+    };
+
+    const selectedCountry = COUNTRY_CODES.find(
+        (c) => c.code === countryCode && c.country === (COUNTRY_CODES.find(cc => cc.code === countryCode)?.country)
+    ) || COUNTRY_CODES[0];
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -51,8 +104,9 @@ const TryNowModal = ({ isOpen, onClose }) => {
                 retellAgentId: selectedAgentId,
                 name,
                 email,
-                toNumber: phoneNumber,
-                fromNumber: process.env.NEXT_PUBLIC_FROM_NUMBER || '+17787190711'
+                toNumber: `${countryCode}${phoneNumber}`,
+                fromNumber: process.env.NEXT_PUBLIC_FROM_NUMBER || '+17787190711',
+                token
             });
             setStatus('success');
 
@@ -61,7 +115,6 @@ const TryNowModal = ({ isOpen, onClose }) => {
                 setStatus(null);
                 setName('');
                 setPhoneNumber('');
-                setEmail('');
                 setSelectedAgentId('');
             }, 2000);
         } catch (error) {
@@ -96,6 +149,12 @@ const TryNowModal = ({ isOpen, onClose }) => {
                             </button>
                         </div>
 
+                        {email && (
+                            <p className="text-sm text-gray-500 mb-4">
+                                Verified as <span className="font-medium text-gray-800">{email}</span>
+                            </p>
+                        )}
+
                         <form onSubmit={handleSubmit} className="space-y-4">
                             {/* Agent Selection */}
                             <div>
@@ -127,27 +186,53 @@ const TryNowModal = ({ isOpen, onClose }) => {
                                 />
                             </div>
 
+                            {/* Phone Number with Country Code Selector */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                                <input
-                                    type="tel"
-                                    required
-                                    value={phoneNumber}
-                                    onChange={(e) => setPhoneNumber(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                                    placeholder="+1234567890"
-                                />
-                            </div>
+                                <div className="flex gap-2">
+                                    {/* Country Code Dropdown */}
+                                    <div className="relative country-code-selector">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                                            className="flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors min-w-[100px] bg-white"
+                                        >
+                                            <span className="text-lg">{selectedCountry.flag}</span>
+                                            <span className="text-sm text-gray-700">{countryCode}</span>
+                                            <ChevronDown size={14} className="text-gray-400 ml-auto" />
+                                        </button>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Email (Optional)</label>
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                                    placeholder="john@example.com"
-                                />
+                                        {isCountryDropdownOpen && (
+                                            <div className="absolute top-full left-0 mt-1 w-64 max-h-48 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg z-60">
+                                                {COUNTRY_CODES.map((country) => (
+                                                    <button
+                                                        key={`${country.country}-${country.code}`}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setCountryCode(country.code);
+                                                            setIsCountryDropdownOpen(false);
+                                                        }}
+                                                        className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 transition-colors text-left"
+                                                    >
+                                                        <span className="text-lg">{country.flag}</span>
+                                                        <span className="text-sm text-gray-700">{country.label}</span>
+                                                        <span className="text-sm text-gray-400 ml-auto">{country.code}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Phone Number Input */}
+                                    <input
+                                        type="tel"
+                                        required
+                                        value={phoneNumber}
+                                        onChange={handlePhoneChange}
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                        placeholder="1234567890"
+                                    />
+                                </div>
                             </div>
 
                             <button

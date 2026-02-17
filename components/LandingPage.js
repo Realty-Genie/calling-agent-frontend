@@ -9,10 +9,34 @@ import HowItWorks from "../components/HowItWorks";
 import Testimonials from "../components/Testimonials";
 import CTASection from "../components/CTASection";
 import Footer from "../components/Footer";
+import EmailVerificationModal from "../components/EmailVerificationModal";
+import OTPVerificationModal from "../components/OTPVerificationModal";
 import TryNowModal from "../components/TryNowModal";
 
 export default function LandingPage() {
-    const [isTryNowOpen, setIsTryNowOpen] = useState(false);
+    // Multi-step flow: null → 'email' → 'otp' → 'call'
+    const [step, setStep] = useState(null);
+    const [verifiedEmail, setVerifiedEmail] = useState('');
+    const [authToken, setAuthToken] = useState('');
+
+    const openTryNow = () => setStep('email');
+
+    const handleEmailSuccess = (email) => {
+        setVerifiedEmail(email);
+        setStep('otp');
+    };
+
+    const handleOTPSuccess = (email, token) => {
+        setVerifiedEmail(email);
+        setAuthToken(token);
+        setStep('call');
+    };
+
+    const handleClose = () => {
+        setStep(null);
+        setVerifiedEmail('');
+        setAuthToken('');
+    };
 
     const navLinks = [
         { label: 'Features', href: '#features' },
@@ -56,7 +80,7 @@ export default function LandingPage() {
                             </button>
                         </Link>
                         <button
-                            onClick={() => setIsTryNowOpen(true)}
+                            onClick={openTryNow}
                             className="bg-[#020617] text-white px-8 py-3 rounded-full text-sm font-grotesk font-medium 
                             hover:scale-105 transition-all duration-300 relative overflow-hidden group 
                             shadow-[0_0_15px_rgba(56,189,248,0.5)] hover:shadow-[0_0_30px_rgba(56,189,248,0.7),0_0_60px_rgba(232,121,249,0.5)]
@@ -89,7 +113,7 @@ export default function LandingPage() {
             <div className="h-16" />
 
             {/* Hero Section */}
-            <Hero onTryNow={() => setIsTryNowOpen(true)} />
+            <Hero onTryNow={openTryNow} />
 
             {/* Features Section */}
             <div id="features">
@@ -107,15 +131,32 @@ export default function LandingPage() {
             </div>
 
             {/* CTA Section */}
-            <CTASection onTryNow={() => setIsTryNowOpen(true)} />
+            <CTASection onTryNow={openTryNow} />
 
             {/* Footer */}
             <Footer />
 
-            {/* Try Now Modal */}
+            {/* Email Verification Modal */}
+            <EmailVerificationModal
+                isOpen={step === 'email'}
+                onClose={handleClose}
+                onSuccess={handleEmailSuccess}
+            />
+
+            {/* OTP Verification Modal */}
+            <OTPVerificationModal
+                isOpen={step === 'otp'}
+                onClose={handleClose}
+                onSuccess={handleOTPSuccess}
+                email={verifiedEmail}
+            />
+
+            {/* Call Modal (after verification) */}
             <TryNowModal
-                isOpen={isTryNowOpen}
-                onClose={() => setIsTryNowOpen(false)}
+                isOpen={step === 'call'}
+                onClose={handleClose}
+                email={verifiedEmail}
+                token={authToken}
             />
         </main>
     );
