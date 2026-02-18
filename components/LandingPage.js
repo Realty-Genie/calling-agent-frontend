@@ -9,34 +9,14 @@ import HowItWorks from "../components/HowItWorks";
 import Testimonials from "../components/Testimonials";
 import CTASection from "../components/CTASection";
 import Footer from "../components/Footer";
-import EmailVerificationModal from "../components/EmailVerificationModal";
-import OTPVerificationModal from "../components/OTPVerificationModal";
 import TryNowModal from "../components/TryNowModal";
 
 export default function LandingPage() {
-    // Multi-step flow: null → 'email' → 'otp' → 'call'
-    const [step, setStep] = useState(null);
-    const [verifiedEmail, setVerifiedEmail] = useState('');
-    const [authToken, setAuthToken] = useState('');
+    const [isTryNowOpen, setIsTryNowOpen] = useState(false);
 
-    const openTryNow = () => setStep('email');
+    const openTryNow = () => setIsTryNowOpen(true);
 
-    const handleEmailSuccess = (email) => {
-        setVerifiedEmail(email);
-        setStep('otp');
-    };
-
-    const handleOTPSuccess = (email, token) => {
-        setVerifiedEmail(email);
-        setAuthToken(token);
-        setStep('call');
-    };
-
-    const handleClose = () => {
-        setStep(null);
-        setVerifiedEmail('');
-        setAuthToken('');
-    };
+    const handleClose = () => setIsTryNowOpen(false);
 
     const navLinks = [
         { label: 'Features', href: '#features' },
@@ -136,27 +116,10 @@ export default function LandingPage() {
             {/* Footer */}
             <Footer />
 
-            {/* Email Verification Modal */}
-            <EmailVerificationModal
-                isOpen={step === 'email'}
-                onClose={handleClose}
-                onSuccess={handleEmailSuccess}
-            />
-
-            {/* OTP Verification Modal */}
-            <OTPVerificationModal
-                isOpen={step === 'otp'}
-                onClose={handleClose}
-                onSuccess={handleOTPSuccess}
-                email={verifiedEmail}
-            />
-
-            {/* Call Modal (after verification) */}
+            {/* Try Now Modal (handles email & OTP verification internally) */}
             <TryNowModal
-                isOpen={step === 'call'}
+                isOpen={isTryNowOpen}
                 onClose={handleClose}
-                email={verifiedEmail}
-                token={authToken}
             />
         </main>
     );
