@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 import Navbar from "../components/Navbar";
-import SingleCallModal from "../components/SingleCallModal";
-import BatchCallModal from "../components/BatchCallModal";
 import { motion, AnimatePresence } from "framer-motion";
+
+const SingleCallModal = dynamic(() => import("../components/SingleCallModal"), { ssr: false });
+const BatchCallModal = dynamic(() => import("../components/BatchCallModal"), { ssr: false });
 import {
     Phone,
     PhoneCall,
@@ -15,6 +17,7 @@ import {
     CheckCircle2,
     XCircle,
     ChevronRight,
+    ChevronLeft,
     BarChart3,
     MessageSquare,
     Play,
@@ -29,7 +32,7 @@ import {
 import api from "../lib/api";
 
 export default function Dashboard() {
-    const { user, loading } = useAuth();
+    const { user } = useAuth();
     const router = useRouter();
     const [isCallModalOpen, setIsCallModalOpen] = useState(false);
     const [isBatchCallModalOpen, setIsBatchCallModalOpen] = useState(false);
@@ -38,6 +41,8 @@ export default function Dashboard() {
     const [callDetails, setCallDetails] = useState(null);
     const [loadingLeads, setLoadingLeads] = useState(true);
     const [agents, setAgents] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const PAGE_SIZE = 10;
 
     useEffect(() => {
         if (user && user.agents) {
@@ -103,7 +108,13 @@ export default function Dashboard() {
         (lead.calls || []).map(call => ({ ...call, lead }))
     ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    if (loading) return null;
+    const totalPages = Math.max(1, Math.ceil(allCalls.length / PAGE_SIZE));
+    const pageStart = (currentPage - 1) * PAGE_SIZE;
+    const paginatedCalls = allCalls.slice(pageStart, pageStart + PAGE_SIZE);
+
+    useEffect(() => {
+        if (currentPage > totalPages) setCurrentPage(totalPages);
+    }, [totalPages, currentPage]);
 
     return (
         <main className="min-h-screen bg-[#F8FAFC] selection:bg-indigo-100 selection:text-indigo-900">
@@ -296,7 +307,7 @@ export default function Dashboard() {
                                                 </div>
                                             </td>
                                         </tr>
-                                    ) : allCalls.slice(0, 10).map((call, idx) => (
+                                    ) : paginatedCalls.map((call, idx) => (
                                         <tr
                                             key={call.callId || idx}
                                             onClick={() => handleCallClick(call.lead, call)}
@@ -335,6 +346,35 @@ export default function Dashboard() {
                                 </tbody>
                             </table>
                         </div>
+
+                        {!loadingLeads && allCalls.length > PAGE_SIZE && (
+                            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/40">
+                                <p className="text-sm text-gray-500">
+                                    Showing <span className="font-semibold text-gray-700">{pageStart + 1}</span>–<span className="font-semibold text-gray-700">{Math.min(pageStart + PAGE_SIZE, allCalls.length)}</span> of <span className="font-semibold text-gray-700">{allCalls.length}</span>
+                                </p>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                        disabled={currentPage === 1}
+                                        className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        <ChevronLeft className="w-4 h-4" />
+                                        Prev
+                                    </button>
+                                    <span className="text-sm text-gray-600 px-2">
+                                        Page <span className="font-semibold text-gray-900">{currentPage}</span> / {totalPages}
+                                    </span>
+                                    <button
+                                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                        disabled={currentPage === totalPages}
+                                        className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        Next
+                                        <ChevronRight className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </motion.div>
                 </div>
             </div>

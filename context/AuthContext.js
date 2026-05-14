@@ -13,29 +13,32 @@ export const AuthProvider = ({ children }) => {
     const router = useRouter();
 
     useEffect(() => {
-        const loadUser = async () => {
-            const token = Cookies.get('token');
-            const storedUser = localStorage.getItem('user');
+        const token = Cookies.get('token');
+        const storedUser = localStorage.getItem('user');
 
-            if (token && storedUser) {
+        if (token && storedUser) {
+            try {
                 const parsedUser = JSON.parse(storedUser);
                 setUser(parsedUser);
+                setLoading(false);
 
-                // Refresh user data to get latest credits/agents, but only for regular users
                 if (parsedUser.role !== 'superadmin') {
-                    try {
-                        const response = await api.get('/auth/me');
-                        const { user: freshUser } = response.data;
-                        localStorage.setItem('user', JSON.stringify(freshUser));
-                        setUser(freshUser);
-                    } catch (err) {
-                        console.error("Failed to refresh user on mount", err);
-                    }
+                    api.get('/auth/me')
+                        .then((response) => {
+                            const { user: freshUser } = response.data;
+                            localStorage.setItem('user', JSON.stringify(freshUser));
+                            setUser(freshUser);
+                        })
+                        .catch((err) => {
+                            console.error("Failed to refresh user on mount", err);
+                        });
                 }
+                return;
+            } catch (e) {
+                console.error("Failed to parse stored user", e);
             }
-            setLoading(false);
-        };
-        loadUser();
+        }
+        setLoading(false);
     }, []);
 
     const login = async (email, password) => {

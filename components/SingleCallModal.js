@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Phone, Loader2, MapPin } from 'lucide-react';
+import { X, Phone, Loader2, MapPin, ChevronDown } from 'lucide-react';
 import api from '../lib/api';
 import AgentSelector from './AgentSelector';
+import CountryCodeModal from './CountryCodeModal';
+import { DEFAULT_COUNTRY } from '../lib/countries';
 import { useAuth } from '../context/AuthContext';
 
 const SingleCallModal = ({ isOpen, onClose, agents }) => {
     const { refreshUser } = useAuth();
     const [name, setName] = useState('');
-    const [phoneNumber, setPhoneNumber] = useState('');
+    const [country, setCountry] = useState(DEFAULT_COUNTRY);
+    const [localNumber, setLocalNumber] = useState('');
+    const [isCountryPickerOpen, setIsCountryPickerOpen] = useState(false);
     const [email, setEmail] = useState('');
     const [address, setAddress] = useState('');
     const [selectedAgentId, setSelectedAgentId] = useState('');
@@ -34,11 +38,14 @@ const SingleCallModal = ({ isOpen, onClose, agents }) => {
         setLoading(true);
         setStatus(null);
 
+        const sanitized = localNumber.replace(/[^\d]/g, '');
+        const fullPhone = `+${country.dial}${sanitized}`;
+
         try {
             await api.post('/call/lead', {
                 name,
                 email,
-                phoneNumber,
+                phoneNumber: fullPhone,
                 address: isSellerAgent ? address : undefined,
                 agentId: selectedAgentId
             });
@@ -51,7 +58,8 @@ const SingleCallModal = ({ isOpen, onClose, agents }) => {
                 onClose();
                 setStatus(null);
                 setName('');
-                setPhoneNumber('');
+                setLocalNumber('');
+                setCountry(DEFAULT_COUNTRY);
                 setEmail('');
                 setAddress('');
                 setSelectedAgentId('');
@@ -111,14 +119,28 @@ const SingleCallModal = ({ isOpen, onClose, agents }) => {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                                <input
-                                    type="tel"
-                                    required
-                                    value={phoneNumber}
-                                    onChange={(e) => setPhoneNumber(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                                    placeholder="+1234567890"
-                                />
+                                <div className="flex items-stretch gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsCountryPickerOpen(true)}
+                                        aria-label={`Country code: ${country.name}, +${country.dial}. Click to change.`}
+                                        className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all shrink-0"
+                                    >
+                                        <span className="text-lg leading-none" aria-hidden>{country.flag}</span>
+                                        <span className="text-sm font-medium text-gray-700 tabular-nums">+{country.dial}</span>
+                                        <ChevronDown size={14} className="text-gray-400" />
+                                    </button>
+                                    <input
+                                        type="tel"
+                                        required
+                                        inputMode="numeric"
+                                        autoComplete="tel-national"
+                                        value={localNumber}
+                                        onChange={(e) => setLocalNumber(e.target.value)}
+                                        className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                        placeholder="9876543210"
+                                    />
+                                </div>
                             </div>
 
                             {isSellerAgent && (
@@ -171,6 +193,13 @@ const SingleCallModal = ({ isOpen, onClose, agents }) => {
                                 <p className="text-red-600 text-sm text-center">Failed to initiate call. Please try again.</p>
                             )}
                         </form>
+
+                        <CountryCodeModal
+                            isOpen={isCountryPickerOpen}
+                            onClose={() => setIsCountryPickerOpen(false)}
+                            selectedIso={country.iso}
+                            onSelect={setCountry}
+                        />
                     </motion.div>
                 </>
             )}
